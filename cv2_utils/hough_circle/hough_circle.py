@@ -1,27 +1,34 @@
 import cv2
 import numpy as np
-from ..utils import ConfigLoader
+from ..utils import ConfigLoader, params_merger
+
 
 class HoughCircleDetector:
     WINDOW_NAME = 'hough_circle'
 
-    def __init__(self, config_file_name='hough_circle', debug=False):
+    def __init__(self, config_file_name='hough_circle', debug=False, **params):
         self.config_loader = ConfigLoader(config_file_name)
 
         self.param = self.config_loader.load(default_param={'dist': 10, 'param1': 100, 'param2': 48, 'minRadius': 12, 'maxRadius': 25})
+        for key, val in params.items():
+            if self.param.get(key):
+                self.param[key] = val
 
         if debug:
             cv2.namedWindow(self.WINDOW_NAME)
             for param, val in self.param.items():
                 cv2.createTrackbar(param, self.WINDOW_NAME, val, 255, self.change(param))
 
-    def detect(self, img):
-        if len(img.shape) == 3 and img.shape[-1] == 3: # color image
+    def detect(self, img, **params):
+        if len(img.shape) == 3 and img.shape[-1] == 3:  # color image
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, self.param['dist'], param1=self.param['param1'],
-                                   param2=self.param['param2'], minRadius=self.param['minRadius'],
-                                   maxRadius=self.param['maxRadius'])
+        merged_params = params_merger(params, self.param)
+
+        circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1,
+                                   merged_params('dist'), param1=merged_params('param1'),
+                                   param2=merged_params('param2'), minRadius=merged_params('minRadius'),
+                                   maxRadius=merged_params('maxRadius'))
         if circles is None:
             return []
         circles = np.uint16(np.around(circles))

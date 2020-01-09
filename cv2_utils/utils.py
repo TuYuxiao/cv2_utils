@@ -3,6 +3,13 @@ import json
 import sys
 import base64
 
+
+def params_merger(params_prioritized, params):
+    def merger(key):
+        return params_prioritized.get(key) if params_prioritized.get(key) else params[key]
+    return merger
+
+
 class ConfigLoader:
     USER = 0
     LOCAL = 1

@@ -5,7 +5,7 @@ from ..utils import ConfigLoader
 class RoiSelector:
     WINDOW_NAME = 'roi'
 
-    def __init__(self, width, height, config_file_name='roi', debug=False):
+    def __init__(self, width, height, config_file_name='roi', debug=False, **params):
         self.width = width
         self.height = height
         self.debug = debug
@@ -16,6 +16,9 @@ class RoiSelector:
 
         param = self.config_loader.load(
             default_param={'roi': [[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]]})
+        for key, val in params.items():
+            if self.param.get(key):
+                self.param[key] = val
 
         self.roi = np.float32(param['roi'])
         self.n_point = 0
@@ -35,7 +38,12 @@ class RoiSelector:
                 self.M = cv2.getPerspectiveTransform(self.roi, self.pts_d)
                 self.config_loader.save({'roi': self.roi.tolist()})
 
-    def wrap(self, img):
+    def wrap(self, img, **params):
+        if params.get('roi'):
+            M = cv2.getPerspectiveTransform(params.get('roi'), self.pts_d)
+        else:
+            M = self.M
+
         if self.debug:
             image = img.copy()
             for i in [0,3]:
@@ -45,4 +53,4 @@ class RoiSelector:
             cv2.imshow(self.WINDOW_NAME, image)
             cv2.waitKey(1)
 
-        return cv2.warpPerspective(img, self.M, (self.width, self.height))
+        return cv2.warpPerspective(img, M, (self.width, self.height))
