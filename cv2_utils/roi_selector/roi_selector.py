@@ -5,11 +5,11 @@ from ..utils import ConfigLoader
 class RoiSelector:
     WINDOW_NAME = 'roi'
 
-    def __init__(self, width, height, config_file_path='roi', debug=True):
+    def __init__(self, width, height, config_file_name='roi', debug=False):
         self.width = width
         self.height = height
         self.debug = debug
-        self.config_loader = ConfigLoader(config_file_path)
+        self.config_loader = ConfigLoader(config_file_name)
 
         self.pts_d = np.float32(
             [[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]])

@@ -5,8 +5,8 @@ from ..utils import ConfigLoader
 class HoughCircleDetector:
     WINDOW_NAME = 'hough_circle'
 
-    def __init__(self, config_file_path='hough_circle', debug=True):
-        self.config_loader = ConfigLoader(config_file_path)
+    def __init__(self, config_file_name='hough_circle', debug=False):
+        self.config_loader = ConfigLoader(config_file_name)
 
         self.param = self.config_loader.load(default_param={'dist': 10, 'param1': 100, 'param2': 48, 'minRadius': 12, 'maxRadius': 25})
 
@@ -15,8 +15,11 @@ class HoughCircleDetector:
             for param, val in self.param.items():
                 cv2.createTrackbar(param, self.WINDOW_NAME, val, 255, self.change(param))
 
-    def detect(self, gray):
-        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, self.param['dist'], param1=self.param['param1'],
+    def detect(self, img):
+        if len(img.shape) == 3 and img.shape[-1] == 3: # color image
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, self.param['dist'], param1=self.param['param1'],
                                    param2=self.param['param2'], minRadius=self.param['minRadius'],
                                    maxRadius=self.param['maxRadius'])
         if circles is None:

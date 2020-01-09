@@ -1,5 +1,7 @@
 import os
 import json
+import sys
+import base64
 
 
 class ConfigLoader:
@@ -20,7 +22,17 @@ class ConfigLoader:
         if not os.path.exists(param_dir):
             os.makedirs(param_dir)
 
+        if name.startswith('/'):
+            name = name[1:]
+        else:
+            exec_file = os.path.realpath(sys.argv[0])
+            ns = base64.b16encode(exec_file.encode()).decode()[:10]
+            name = os.path.join(ns,name)
+
         self.config_file_path = os.path.join(param_dir, name+".json")
+
+        if not os.path.exists(os.path.dirname(self.config_file_path)):
+            os.makedirs(os.path.dirname(self.config_file_path))
 
     def load(self, default_param):
         try:

@@ -35,10 +35,13 @@ class VideoCapture:
                 fps = (self.previous_frames_time.maxlen-1) / (self.previous_frames_time[-1] - self.previous_frames_time[0])
                 cv2.putText(self.last_frame, 'FPS: %d' % round(fps), (5, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
 
+            # TODO change the window name
             cv2.imshow('frame', self.last_frame)
         self.last_frame = frame
 
     def __iter__(self):
+        # TODO low fps for stream device such as video would cause buffer emit and result in high time delay
+        # use a Thread/Process to continually clear the buffer and reduce the time delay
         return self
 
     def __next__(self):

@@ -6,8 +6,8 @@ from ..utils import ConfigLoader
 class HSVFilter:
     WINDOW_NAME = 'hsv'
 
-    def __init__(self, config_file_path='hsv', debug=True):
-        self.config_loader = ConfigLoader(config_file_path)
+    def __init__(self, config_file_name='hsv', debug=False):
+        self.config_loader = ConfigLoader(config_file_name)
 
         self.param = self.config_loader.load(
             default_param={'low_H': 0, 'high_H': 255, 'low_S': 0, 'high_S': 255, 'low_V': 0, "high_V": 255})
