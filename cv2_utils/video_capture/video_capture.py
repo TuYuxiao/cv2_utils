@@ -2,19 +2,68 @@ from abc import abstractmethod
 
 import cv2
 import sys
+import time
+from collections import deque
 
 version_info = sys.version_info
 
 
 class VideoCapture:
-    def __init__(self, file_path, loop=True):
+    def __init__(self, file_path, exit_keys=[27, ord('q')], max_fps=0, show_video=False, show_fps=False, loop=False):
         self.gen = Generator.get_generator(file_path, loop)
+        self.exit_keys = exit_keys
+        self.show_video = show_video
+        self.show_fps = show_fps
+        self.max_fps = max_fps
+        self.last_pressed_key = -1
 
-    def read(self, gray = False):
+        self.last_frame = None
+
+        self.previous_frames_time = deque(maxlen=5)
+
+    def read(self, gray=False):
         ret, img = self.gen.read()
         if gray and ret:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return ret, img
+
+    def show_frame(self, frame):
+        if self.last_frame is not None:
+
+            # add fps display
+            if self.show_fps and len(self.previous_frames_time) == self.previous_frames_time.maxlen:
+                fps = (self.previous_frames_time.maxlen-1) / (self.previous_frames_time[-1] - self.previous_frames_time[0])
+                cv2.putText(self.last_frame, 'FPS: %d' % round(fps), (5, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+
+            cv2.imshow('frame', self.last_frame)
+        self.last_frame = frame
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        ret, frame = self.read()
+
+        self.last_pressed_key = cv2.waitKey(1)
+        if not ret or self.last_pressed_key in self.exit_keys:
+            raise StopIteration
+
+        if self.show_video:
+            self.show_frame(frame)
+
+        # fps limit
+        current_time = time.time_ns()/1e9
+        if len(self.previous_frames_time) > 0 and self.max_fps > 0:
+            dt = current_time - self.previous_frames_time[-1]
+            sleep_time = 1./self.max_fps - dt
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+        self.previous_frames_time.append(time.time_ns()/1e9)
+
+        return frame
+
+    def get_last_pressed_key(self):
+        return self.last_pressed_key
 
 
 class Generator:
