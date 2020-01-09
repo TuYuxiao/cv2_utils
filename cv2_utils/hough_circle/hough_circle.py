@@ -7,6 +7,13 @@ class HoughCircleDetector:
     WINDOW_NAME = 'hough_circle'
 
     def __init__(self, config_file_name='hough_circle', debug=False, **params):
+        """
+
+        :param config_file_name: The config file that would store the configured parameters automatically
+        :param debug: show the cv slide bar to adjust parameter if True
+        :param params: directly indicate parameters for Hough circle detection,
+                        default params: {'dist': 10, 'param1': 100, 'param2': 48, 'minRadius': 12, 'maxRadius': 25}
+        """
         self.config_loader = ConfigLoader(config_file_name)
 
         self.param = self.config_loader.load(default_param={'dist': 10, 'param1': 100, 'param2': 48, 'minRadius': 12, 'maxRadius': 25})

@@ -6,10 +6,10 @@ if __name__ == '__main__':
     parser.add_argument("--input", nargs='?', type=str, required=True,  help="Video input path")
     FLAGS = parser.parse_args()
 
-    circle_detector = HoughCircleDetector(debug=True, dist=10)  # directly indicate some parameters
+    circle_detector = HoughCircleDetector(debug=True)
 
     cap = VideoCapture(FLAGS.input, show_video=True, show_fps=True, loop=True)
 
     for img in cap:
-        circles = circle_detector.detect(img, param1=100)
+        circles = circle_detector.detect(img)
         circle_detector.render(img, circles)

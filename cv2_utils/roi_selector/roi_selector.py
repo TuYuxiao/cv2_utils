@@ -2,10 +2,20 @@ import cv2
 import numpy as np
 from ..utils import ConfigLoader
 
+
 class RoiSelector:
     WINDOW_NAME = 'roi'
 
     def __init__(self, width, height, config_file_name='roi', debug=False, **params):
+        """
+
+        :param width: width of wrapped image
+        :param height: height of wrapped image
+        :param config_file_name: The config file that would store the configured parameters automatically
+        :param debug: show the cv slide bar to adjust parameter if True
+        :param params: directly indicate parameters for Hough circle detection,
+                        default params: {'roi': [[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]]}
+        """
         self.width = width
         self.height = height
         self.debug = debug

@@ -42,11 +42,11 @@ class ConfigLoader:
 
     def load(self, default_param):
         try:
-            with open(self.config_file_path, 'r') as f:  # TODO the config file maybe changed by user
+            with open(self.config_file_path, 'r') as f:
                 param = json.load(f)
                 if isinstance(param, dict):
                     default_param.update(param)
-        except json.JSONDecodeError:
+        except:
             pass
 
         return default_param

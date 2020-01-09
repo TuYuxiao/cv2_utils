@@ -7,6 +7,13 @@ class HSVFilter:
     WINDOW_NAME = 'hsv'
 
     def __init__(self, config_file_name='hsv', debug=False, **params):
+        """
+
+        :param config_file_name: The config file that would store the configured parameters automatically
+        :param debug: show the cv slide bar to adjust parameter if True
+        :param params: directly indicate parameters for Hough circle detection,
+                        default params: {'low_H': 0, 'high_H': 255, 'low_S': 0, 'high_S': 255, 'low_V': 0, "high_V": 255}
+        """
         self.config_loader = ConfigLoader(config_file_name)
 
         self.param = self.config_loader.load(
