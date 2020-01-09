@@ -3,7 +3,6 @@ import json
 import sys
 import base64
 
-
 class ConfigLoader:
     USER = 0
     LOCAL = 1
@@ -22,24 +21,28 @@ class ConfigLoader:
         if not os.path.exists(param_dir):
             os.makedirs(param_dir)
 
-        if name.startswith('/'):
+        if name.startswith('/'):  # abs
             name = name[1:]
-        else:
+        else:  # relative
             exec_file = os.path.realpath(sys.argv[0])
             ns = base64.b16encode(exec_file.encode()).decode()[:10]
-            name = os.path.join(ns,name)
+            name = os.path.join(ns, name)
 
-        self.config_file_path = os.path.join(param_dir, name+".json")
+        self.config_file_path = os.path.join(param_dir, name + ".json")
 
         if not os.path.exists(os.path.dirname(self.config_file_path)):
             os.makedirs(os.path.dirname(self.config_file_path))
 
     def load(self, default_param):
         try:
-            with open(self.config_file_path, 'r') as f:
-                return json.load(f)
-        except:
-            return default_param
+            with open(self.config_file_path, 'r') as f:  # TODO the config file maybe changed by user
+                param = json.load(f)
+                if isinstance(param, dict):
+                    default_param.update(param)
+        except json.JSONDecodeError:
+            pass
+
+        return default_param
 
     def save(self, param):
         with open(self.config_file_path, 'w') as f:
