@@ -45,7 +45,7 @@ class VideoCapture:
         ret, frame = self.read()
 
         self.last_pressed_key = cv2.waitKey(1)
-        if not ret or self.last_pressed_key in self.exit_keys:
+        if (not ret) or self.last_pressed_key in self.exit_keys:
             raise StopIteration
 
         if self.show_video:
@@ -116,9 +116,8 @@ class ImageGenerator(Generator):
         self.first_read = True
 
     def read(self):
-        if not self.first_read:
-            self.first_read = False
         if self.loop or self.first_read:
+            self.first_read = False
             return True, self.image
         return False, None
 
@@ -214,5 +213,5 @@ class RosVideoGenerator(Generator):
         import rospy
         if file_path in [topic[0] for topic in rospy.get_published_topics()]:
             return True
-        print([topic[0] for topic in rospy.get_published_topics()])
+
         return False
