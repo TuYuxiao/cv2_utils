@@ -5,12 +5,12 @@ import sys
 import time
 from collections import deque
 
-from cv2_utils.layers import Layer
+from cv2_utils.layers import SourceLayer
 
 version_info = sys.version_info
 
 
-class VideoCapture(Layer):
+class VideoCapture(SourceLayer):
     def __init__(self, file_path, layer_name="default", exit_keys=[27, ord('q')], max_fps=0, show_video=False, show_fps=False, loop=False):
         super().__init__(layer_name=layer_name)
 

@@ -22,6 +22,9 @@ class HoughCircleDetector(ParamLayer):
         for param, val in self.param.items():
             cv2.createTrackbar(param, self.layer_name, val, 255, self.change(param))
 
+    def inference(self, img):
+        return self.detect(img)
+
     def detect(self, img, **params):
         if len(img.shape) == 3 and img.shape[-1] == 3:  # color image
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

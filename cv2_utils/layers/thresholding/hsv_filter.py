@@ -23,6 +23,9 @@ class HSVFilter(ParamLayer):
         for param, val in self.param.items():
             cv2.createTrackbar(param, self.layer_name, val, 255, self.change(param))
 
+    def inference(self, img):
+        return self.filter(img)
+
     def filter(self, image, **params):
         frame_HSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 

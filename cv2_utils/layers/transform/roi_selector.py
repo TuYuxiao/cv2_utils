@@ -34,6 +34,9 @@ class RoiSelector(ParamLayer):
         cv2.namedWindow(self.layer_name)
         cv2.setMouseCallback(self.layer_name, self.mouse_click)
 
+    def inference(self, img):
+        return self.wrap(img)
+
     def mouse_click(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
             self.roi[self.n_point][0] = x

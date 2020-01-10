@@ -6,6 +6,8 @@ from cv2_utils.utils import ConfigLoader
 
 class Layer:
     def __init__(self, layer_name='default'):
+
+        # TODO automatically generate layer name
         if layer_name.startswith('/'):  # abs
             layer_name = "%s_%s" % (self.__class__.__name__, layer_name[1:])
         else:  # relative
@@ -15,7 +17,7 @@ class Layer:
 
         self.layer_name = layer_name
 
-    def forward(self, img):
+    def inference(self, img):
         return img
 
 
@@ -49,3 +51,17 @@ class ParamLayer(Layer):
 
     def save_param(self):
         self.config_loader.save(self.param)
+
+
+class SourceLayer(Layer):
+    def __init__(self, layer_name='default'):
+        super().__init__(layer_name=layer_name)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        raise StopIteration
+
+    def inference(self, img):
+        assert False, "Source layer should called"
