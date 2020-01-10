@@ -1,17 +1,16 @@
 from abc import abstractmethod
 
 import cv2
-import sys
+import numpy as np
 import time
 from collections import deque
 
 from cv2_utils.layers import SourceLayer
 
-version_info = sys.version_info
-
 
 class VideoCapture(SourceLayer):
-    def __init__(self, file_path, layer_name="default", exit_keys=[27, ord('q')], max_fps=0, show_video=False, show_fps=False, loop=False):
+    def __init__(self, file_path, layer_name="default", exit_keys=[27, ord('q')], max_fps=0, show_video=False,
+                 show_fps=False, loop=False):
         super().__init__(layer_name=layer_name)
 
         self.gen = Generator.get_generator(file_path, loop)
@@ -36,8 +35,10 @@ class VideoCapture(SourceLayer):
 
             # add fps display
             if self.show_fps and len(self.previous_frames_time) == self.previous_frames_time.maxlen:
-                fps = (self.previous_frames_time.maxlen-1) / (self.previous_frames_time[-1] - self.previous_frames_time[0])
-                cv2.putText(self.last_frame, 'FPS: %d' % round(fps), (5, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
+                fps = (self.previous_frames_time.maxlen - 1) / (
+                            self.previous_frames_time[-1] - self.previous_frames_time[0])
+                cv2.putText(self.last_frame, 'FPS: %d' % round(fps), (5, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0),
+                            2)
 
             cv2.imshow(self.layer_name, self.last_frame)
         self.last_frame = frame
@@ -58,13 +59,13 @@ class VideoCapture(SourceLayer):
             self.show_frame(frame)
 
         # fps limit
-        current_time = time.time_ns()/1e9
+        current_time = time.time_ns() / 1e9
         if len(self.previous_frames_time) > 0 and self.max_fps > 0:
             dt = current_time - self.previous_frames_time[-1]
-            sleep_time = 1./self.max_fps - dt
+            sleep_time = 1. / self.max_fps - dt
             if sleep_time > 0:
                 time.sleep(sleep_time)
-        self.previous_frames_time.append(time.time_ns()/1e9)
+        self.previous_frames_time.append(time.time_ns() / 1e9)
 
         return frame
 
@@ -99,12 +100,7 @@ class Generator:
 
     @classmethod
     def get_generator(cls, file_path, loop):
-        if version_info.major == 3 and version_info.minor >= 6:
-            gens = cls.GENERATORS
-        else:
-            gens = [ImageGenerator, VideoGenerator, CameraGenerator, RosVideoGenerator]
-
-        for gen in gens:
+        for gen in cls.GENERATORS:
             if gen.check(file_path):
                 return gen(file_path, loop)
         assert False, "no valid generator"
@@ -112,10 +108,8 @@ class Generator:
 
 class ImageGenerator(Generator):
     def __init__(self, file_path, loop):
-        if version_info.major == 3:
-            super().__init__(file_path, loop)
-        else:
-            Generator.__init__(self, file_path, loop)
+        super().__init__(file_path, loop)
+
         self.image = cv2.imread(file_path)
         assert self.image is not None
 
@@ -139,10 +133,8 @@ class ImageGenerator(Generator):
 
 class VideoGenerator(Generator):
     def __init__(self, file_path, loop):
-        if version_info.major == 3:
-            super().__init__(file_path, loop)
-        else:
-            Generator.__init__(self, file_path, loop)
+        super().__init__(file_path, loop)
+
         self.cap = cv2.VideoCapture(file_path)
         assert self.cap.read()[0]
         self.reset()
@@ -167,10 +159,8 @@ class VideoGenerator(Generator):
 
 class CameraGenerator(Generator):
     def __init__(self, file_path, loop):
-        if version_info.major == 3:
-            super().__init__(file_path, loop)
-        else:
-            Generator.__init__(self, file_path, loop)
+        super().__init__(file_path, loop)
+
         self.cap = cv2.VideoCapture(file_path)
 
     def read(self):
@@ -187,35 +177,41 @@ class CameraGenerator(Generator):
 
 class RosVideoGenerator(Generator):
     def __init__(self, file_path, loop):
-        if version_info.major == 3:
-            super().__init__(file_path, loop)
-        else:
-            Generator.__init__(self, file_path, loop)
+        super().__init__(file_path, loop)
+
         import rospy
-        from cv_bridge import CvBridge, CvBridgeError
         from sensor_msgs.msg import Image
         from queue import Queue
         rospy.init_node('ros_video_capture', anonymous=True)
-        self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber(file_path, Image, self.callback)
         self.image_queue = Queue(maxsize=3)
 
     def callback(self, data):
-        try:
-            image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            if self.image_queue.full():
-                self.image_queue.get_nowait()
-            self.image_queue.put_nowait(image)
-        except Exception as e:
-            print(e)
+        # decode ros Image msg to cv image, TODO test all encodings
+        encoding = data.encoding
+        if encoding.endswith("8"):
+            image = np.frombuffer(data.data, dtype=np.uint8)
+        elif encoding.endswith("16"):
+            image = np.frombuffer(data.data, dtype=np.uint16)
+        else:
+            assert False, "unsupported encoding type"
+
+        if encoding.startswith('mono'):
+            image = image.reshape((data.height, data.width))
+        else:
+            image = image.reshape((data.height, data.width, -1))
+            if encoding.startswith("rgb"):
+                image[..., :3] = image[..., -2::-1]
+
+        if self.image_queue.full():
+            self.image_queue.get_nowait()
+        self.image_queue.put_nowait(image)
 
     def read(self):
         return True, self.image_queue.get()
 
     @classmethod
     def check(cls, file_path):
-        if version_info.major == 3:  # cv_bridge is not support python3 currently TODO
-            return False
         import rospy
         if file_path in [topic[0] for topic in rospy.get_published_topics()]:
             return True
