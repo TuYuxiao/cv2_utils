@@ -1,12 +1,12 @@
 import cv2
 import numpy as np
-from ..utils import ConfigLoader
+from cv2_utils.layers import ParamLayer
 
 
-class RoiSelector:
+class RoiSelector(ParamLayer):
     WINDOW_NAME = 'roi'
 
-    def __init__(self, width, height, config_file_name='roi', debug=False, **params):
+    def __init__(self, width, height, layer_name="default", debug=False, **params):
         """
 
         :param width: width of wrapped image
@@ -16,27 +16,23 @@ class RoiSelector:
         :param params: directly indicate parameters for Hough circle detection,
                         default params: {'roi': [[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]]}
         """
+
         self.width = width
         self.height = height
-        self.debug = debug
-        self.config_loader = ConfigLoader(config_file_name)
+        self.DEFAULT_PARAM = {'roi': [[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]]}
+
+        super().__init__(layer_name, debug, **params)
 
         self.pts_d = np.float32(
             [[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]])
 
-        param = self.config_loader.load(
-            default_param={'roi': [[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]]})
-        for key, val in params.items():
-            if self.param.get(key):
-                self.param[key] = val
-
-        self.roi = np.float32(param['roi'])
+        self.roi = np.float32(self.param['roi'])
         self.n_point = 0
         self.M = cv2.getPerspectiveTransform(self.roi, self.pts_d)
 
-        if debug:
-            cv2.namedWindow(self.WINDOW_NAME)
-            cv2.setMouseCallback(self.WINDOW_NAME, self.mouse_click)
+    def debug_setup(self):
+        cv2.namedWindow(self.layer_name)
+        cv2.setMouseCallback(self.layer_name, self.mouse_click)
 
     def mouse_click(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -60,7 +56,7 @@ class RoiSelector:
                 for j in [1,2]:
                     cv2.line(image, (self.roi[i][0],self.roi[i][1]), (self.roi[j][0],self.roi[j][1]), (0,0,255), 2)
 
-            cv2.imshow(self.WINDOW_NAME, image)
+            cv2.imshow(self.layer_name, image)
             cv2.waitKey(1)
 
         return cv2.warpPerspective(img, M, (self.width, self.height))

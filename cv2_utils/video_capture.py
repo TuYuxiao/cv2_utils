@@ -5,11 +5,15 @@ import sys
 import time
 from collections import deque
 
+from cv2_utils.layers import Layer
+
 version_info = sys.version_info
 
 
-class VideoCapture:
-    def __init__(self, file_path, exit_keys=[27, ord('q')], max_fps=0, show_video=False, show_fps=False, loop=False):
+class VideoCapture(Layer):
+    def __init__(self, file_path, layer_name="default", exit_keys=[27, ord('q')], max_fps=0, show_video=False, show_fps=False, loop=False):
+        super().__init__(layer_name=layer_name)
+
         self.gen = Generator.get_generator(file_path, loop)
         self.exit_keys = exit_keys
         self.show_video = show_video
@@ -35,8 +39,7 @@ class VideoCapture:
                 fps = (self.previous_frames_time.maxlen-1) / (self.previous_frames_time[-1] - self.previous_frames_time[0])
                 cv2.putText(self.last_frame, 'FPS: %d' % round(fps), (5, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
 
-            # TODO change the window name
-            cv2.imshow('frame', self.last_frame)
+            cv2.imshow(self.layer_name, self.last_frame)
         self.last_frame = frame
 
     def __iter__(self):

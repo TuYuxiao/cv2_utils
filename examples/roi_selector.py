@@ -7,7 +7,7 @@ if __name__ == '__main__':
     parser.add_argument("--input", nargs='?', type=str, required=True,  help="Video input path")
     FLAGS = parser.parse_args()
 
-    roi_selector = RoiSelector(500, 500, 'chinese_chess_roi', debug=True)
+    roi_selector = RoiSelector(500, 500, debug=True)
 
     cap = VideoCapture(FLAGS.input, show_video=False, loop=True)
 

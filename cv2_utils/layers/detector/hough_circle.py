@@ -1,12 +1,13 @@
 import cv2
 import numpy as np
-from ..utils import ConfigLoader, params_merger
+from cv2_utils.utils import params_merger
+from cv2_utils.layers import ParamLayer
 
 
-class HoughCircleDetector:
-    WINDOW_NAME = 'hough_circle'
+class HoughCircleDetector(ParamLayer):
+    DEFAULT_PARAM = {'dist': 10, 'param1': 100, 'param2': 48, 'minRadius': 12, 'maxRadius': 25}
 
-    def __init__(self, config_file_name='hough_circle', debug=False, **params):
+    def __init__(self, layer_name="default", debug=False, **params):
         """
 
         :param config_file_name: The config file that would store the configured parameters automatically
@@ -14,17 +15,12 @@ class HoughCircleDetector:
         :param params: directly indicate parameters for Hough circle detection,
                         default params: {'dist': 10, 'param1': 100, 'param2': 48, 'minRadius': 12, 'maxRadius': 25}
         """
-        self.config_loader = ConfigLoader(config_file_name)
+        super().__init__(layer_name, debug, **params)
 
-        self.param = self.config_loader.load(default_param={'dist': 10, 'param1': 100, 'param2': 48, 'minRadius': 12, 'maxRadius': 25})
-        for key, val in params.items():
-            if self.param.get(key):
-                self.param[key] = val
-
-        if debug:
-            cv2.namedWindow(self.WINDOW_NAME)
-            for param, val in self.param.items():
-                cv2.createTrackbar(param, self.WINDOW_NAME, val, 255, self.change(param))
+    def debug_setup(self):
+        cv2.namedWindow(self.layer_name)
+        for param, val in self.param.items():
+            cv2.createTrackbar(param, self.layer_name, val, 255, self.change(param))
 
     def detect(self, img, **params):
         if len(img.shape) == 3 and img.shape[-1] == 3:  # color image
@@ -47,14 +43,3 @@ class HoughCircleDetector:
                 cv2.circle(target, (i[0], i[1]), i[2], (0, 255, 0), 2)
             if draw_center:
                 cv2.circle(target, (i[0], i[1]), 2, (255, 0, 0), 3)
-
-    def change(self, var):
-        def feedback(x):
-            self.param[var] = x
-            print(var, self.param.get(var))
-            self.save_param()
-
-        return feedback
-
-    def save_param(self):
-        self.config_loader.save(self.param)

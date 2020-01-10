@@ -8,7 +8,7 @@ if __name__ == '__main__':
 
     circle_detector = HoughCircleDetector(debug=True)
 
-    cap = VideoCapture(FLAGS.input, show_video=True, show_fps=True, loop=True)
+    cap = VideoCapture(FLAGS.input,show_video=True, show_fps=True, loop=True)
 
     for img in cap:
         circles = circle_detector.detect(img)
