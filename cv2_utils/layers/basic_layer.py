@@ -1,6 +1,6 @@
 import os
 import sys
-import base64
+import hashlib
 from cv2_utils.utils import ConfigLoader
 
 
@@ -12,7 +12,7 @@ class Layer:
             layer_name = "%s_%s" % (self.__class__.__name__, layer_name[1:])
         else:  # relative
             exec_file = os.path.realpath(sys.argv[0])
-            ns = base64.b16encode(exec_file.encode()).decode()[:10]
+            ns = hashlib.md5(exec_file.encode()).hexdigest()
             layer_name = os.path.join(ns, "%s_%s" % (self.__class__.__name__, layer_name))
 
         self.layer_name = layer_name

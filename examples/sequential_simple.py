@@ -1,6 +1,6 @@
 import argparse
 import cv2
-from cv2_utils import HSVFilter, RoiSelector, VideoCapture, Sequential
+from cv2_utils import HSVFilter, RoiSelector, GaussianFilter, VideoCapture, Sequential
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -10,6 +10,7 @@ if __name__ == '__main__':
     model = Sequential()
     model.add(VideoCapture(FLAGS.input, show_video=False, loop=True))
     model.add(RoiSelector(500, 500, debug=True))
+    model.add(GaussianFilter(ksize=5, debug=True))
     model.add(HSVFilter(debug=True))
 
     for thresh in model:
