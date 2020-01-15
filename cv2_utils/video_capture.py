@@ -212,8 +212,11 @@ class RosVideoGenerator(Generator):
 
     @classmethod
     def check(cls, file_path):
-        import rospy
-        if file_path in [topic[0] for topic in rospy.get_published_topics()]:
-            return True
+        try:
+            import rospy
+            if file_path in [topic[0] for topic in rospy.get_published_topics()]:
+                return True
+        except ImportError:
+            return False
 
         return False
