@@ -16,7 +16,7 @@ class GaussianFilter(ParamLayer):
         return cv2.GaussianBlur(img, (ksize, ksize), merged_params('sigma'))
 
     def debug_setup(self):
-        cv2.namedWindow(self.layer_name)
+        super().debug_setup()
 
         def feedback(x):
             var = 'ksize'

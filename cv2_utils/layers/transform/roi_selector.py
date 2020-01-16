@@ -31,7 +31,7 @@ class RoiSelector(ParamLayer):
         self.M = cv2.getPerspectiveTransform(self.roi, self.pts_d)
 
     def debug_setup(self):
-        cv2.namedWindow(self.layer_name)
+        super().debug_setup()
         cv2.setMouseCallback(self.layer_name, self.mouse_click)
 
     def inference(self, img):

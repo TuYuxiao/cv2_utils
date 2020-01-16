@@ -1,6 +1,7 @@
 import os
 import sys
 import hashlib
+import cv2
 from cv2_utils.utils import ConfigLoader
 
 
@@ -39,7 +40,7 @@ class ParamLayer(Layer):
             self.debug_setup()
 
     def debug_setup(self):
-        pass
+        cv2.namedWindow(self.layer_name)
 
     def change(self, var):
         def feedback(x):

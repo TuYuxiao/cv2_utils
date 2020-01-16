@@ -18,7 +18,7 @@ class HoughCircleDetector(ParamLayer):
         super().__init__(layer_name, debug, **params)
 
     def debug_setup(self):
-        cv2.namedWindow(self.layer_name)
+        super().debug_setup()
         for param, val in self.param.items():
             cv2.createTrackbar(param, self.layer_name, val, 255, self.change(param))
 
