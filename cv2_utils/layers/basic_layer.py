@@ -9,17 +9,23 @@ class Layer:
     def __init__(self, layer_name='default'):
 
         # TODO automatically generate layer name
+
+        exec_file = os.path.realpath(sys.argv[0])
+        ns = hashlib.md5(exec_file.encode()).hexdigest()
         if layer_name.startswith('/'):  # abs
-            layer_name = "%s_%s" % (self.__class__.__name__, layer_name[1:])
+            layer_id = "%s_%s" % (layer_name[1:], self.__class__.__name__)
         else:  # relative
-            exec_file = os.path.realpath(sys.argv[0])
-            ns = hashlib.md5(exec_file.encode()).hexdigest()
-            layer_name = os.path.join(ns, "%s_%s" % (self.__class__.__name__, layer_name))
+            layer_id = os.path.join("%s_%s" % (os.path.basename(exec_file), ns), "%s_%s" % (layer_name, self.__class__.__name__))
 
-        self.layer_name = layer_name
+        self.layer_name = "%s_%s" % (layer_name, ns)
+        self.layer_id = layer_id
 
-    def inference(self, img):
+    def inference(self, img, **params):
         return img
+
+    def __call__(self, *args, **kwargs):
+        assert len(args) == 1
+        return self.inference(args[0], **kwargs)
 
 
 class ParamLayer(Layer):
@@ -28,7 +34,7 @@ class ParamLayer(Layer):
     def __init__(self, layer_name='default', debug=False, **params):
         super().__init__(layer_name=layer_name)
 
-        self.config_loader = ConfigLoader(self.layer_name)
+        self.config_loader = ConfigLoader(self.layer_id)
 
         self.param = self.config_loader.load(default_param=self.DEFAULT_PARAM)
         for key, val in params.items():
@@ -65,4 +71,4 @@ class SourceLayer(Layer):
         raise StopIteration
 
     def inference(self, img):
-        assert False, "Source layer should called"
+        assert False, "Source layer should not be called"

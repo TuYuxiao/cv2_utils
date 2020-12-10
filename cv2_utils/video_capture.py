@@ -123,6 +123,8 @@ class ImageGenerator(Generator):
 
     @classmethod
     def check(cls, file_path):
+        if not isinstance(file_path, str):
+            return False
         file_path = file_path.lower()
         if file_path.endswith('.jpg') or file_path.endswith('.jpeg') \
                 or file_path.endswith('.png') or file_path.endswith('.tiff') \
@@ -151,6 +153,8 @@ class VideoGenerator(Generator):
 
     @classmethod
     def check(cls, file_path):
+        if not isinstance(file_path, str):
+            return False
         file_path = file_path.lower()
         if file_path.endswith('.mp4') or file_path.endswith('.avi'):
             return True
@@ -170,6 +174,8 @@ class CameraGenerator(Generator):
     def check(cls, file_path):
         if isinstance(file_path, int):
             return True
+        if not isinstance(file_path, str):
+            return False
         if file_path.startswith('http://') or file_path.startswith('https://'):
             return True
         return False
@@ -217,6 +223,25 @@ class RosVideoGenerator(Generator):
             if file_path in [topic[0] for topic in rospy.get_published_topics()]:
                 return True
         except ImportError:
+            return False
+
+        return False
+
+class Kinect2Generator(Generator):
+    def __init__(self, file_path, loop):
+        super().__init__(file_path, loop)
+        self._kinect = file_path
+
+    def read(self):
+        return True, self._kinect.get_last_color_frame().reshape((self._kinect.color_frame_desc.Height, self._kinect.color_frame_desc.Width, -1))
+
+    @classmethod
+    def check(cls, file_path):
+        try:
+            from pykinect2 import PyKinectRuntime
+            if isinstance(file_path, PyKinectRuntime.PyKinectRuntime):
+                return True
+        except:
             return False
 
         return False
