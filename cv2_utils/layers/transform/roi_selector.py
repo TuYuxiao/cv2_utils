@@ -34,8 +34,8 @@ class RoiSelector(ParamLayer):
         super().debug_setup()
         cv2.setMouseCallback(self.layer_name, self.mouse_click)
 
-    def inference(self, img):
-        return self.wrap(img)
+    def inference(self, img, **params):
+        return self.wrap(img, **params)
 
     def mouse_click(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:

@@ -27,5 +27,5 @@ class GaussianFilter(ParamLayer):
         cv2.createTrackbar('ksize', self.layer_name, self.param['ksize'], 255, feedback)
         cv2.createTrackbar('sigma', self.layer_name, self.param['sigma'], 255, self.change('sigma'))
 
-    def inference(self, img):
-        return self.filter(img)
+    def inference(self, img, **params):
+        return self.filter(img, **params)
