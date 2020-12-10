@@ -5,16 +5,15 @@ from cv2_utils.layers import ParamLayer
 
 class PolygonMask(ParamLayer):
     WINDOW_NAME = 'poly mask'
+    DEFAULT_PARAM = {'contour': []}
 
     def __init__(self, auto_clip=False, layer_name="default", debug=False, **params):
         """
 
-        :param debug: show the cv slide bar to adjust parameter if True
-        :param params: directly indicate parameters for Hough circle detection,
-                        default params: {'roi': [[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]]}
+        :param auto_clip: whether clip img to minimum size after mask
+        :param debug: show the img that could select the mask polygon by mouse click, left click: add vertex, eight click: clear
+        :param params: directly indicate parameters for polygon mask, default params: {'contour': []}
         """
-
-        self.DEFAULT_PARAM = {'contour': []}
 
         super().__init__(layer_name, debug, **params)
 
@@ -34,13 +33,13 @@ class PolygonMask(ParamLayer):
     def update_mask(self, img_shape):
         if len(self.contour) < 3:
             return None
-        mask = np.zeros((img_shape[1],img_shape[0]), dtype='uint8')
+        mask = np.zeros((img_shape[1], img_shape[0]), dtype='uint8')
         cv2.drawContours(mask, [np.array(self.contour)], -1, (255), -1)
         return mask
 
     def mouse_click(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
-            self.contour.append(((x,y),))
+            self.contour.append(((x, y),))
         elif event == cv2.EVENT_RBUTTONDOWN:
             self.contour.clear()
 
@@ -56,7 +55,8 @@ class PolygonMask(ParamLayer):
         if self.debug and (params.get('show') is None or params.get('show')):
             image = img.copy()
             for i in range(len(contour)):
-                cv2.line(image, (contour[i][0][0], contour[i][0][1]), (contour[(i+1)%len(contour)][0][0], contour[(i+1)%len(contour)][0][1]), (0,0,255), 2)
+                cv2.line(image, (contour[i][0][0], contour[i][0][1]),
+                         (contour[(i + 1) % len(contour)][0][0], contour[(i + 1) % len(contour)][0][1]), (0, 0, 255), 2)
 
             cv2.imshow(self.layer_name, image)
             cv2.waitKey(1)
@@ -73,5 +73,5 @@ class PolygonMask(ParamLayer):
         masked_img = cv2.bitwise_and(img, img, mask=self.mask)
         if self.auto_clip and (not self.debug):
             rect = cv2.boundingRect(np.array(self.contour))
-            masked_img = masked_img[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2], :]
+            masked_img = masked_img[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2], :]
         return masked_img
