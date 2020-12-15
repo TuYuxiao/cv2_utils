@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from cv2_utils.utils import params_merger
-from cv2_utils.layers import ParamLayer
+from cv2_utils.layers import ParamLayer, Layer
 
 
 class HSVFilter(ParamLayer):
@@ -33,3 +33,21 @@ class HSVFilter(ParamLayer):
         frame_threshold = cv2.inRange(frame_HSV, (merged_params('low_H'), merged_params('low_S'), merged_params('low_V')),
                                       (merged_params('high_H'), merged_params('high_S'), merged_params('high_V')))
         return frame_threshold
+
+    def __add__(self, other):
+        return CompositeHSVFilter(self, other)
+
+
+class CompositeHSVFilter(Layer):
+    def __init__(self, *layers):
+        self.layers = layers
+        assert len(layers) >= 2
+
+    def inference(self, img, **params):
+        dst = cv2.add(self.layers[0].inference(img), self.layers[1].inference(img))
+        for i in range(2, len(self.layers)):
+            dst = cv2.add(dst, self.layers[i].inference(img))
+        return dst
+
+    def __add__(self, other):
+        return CompositeHSVFilter(*self.layers, other)
